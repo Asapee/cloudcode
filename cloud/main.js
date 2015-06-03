@@ -16,7 +16,13 @@ Parse.Cloud.define("unlock", function (request, response) {
 	}
 });
 
-
 Parse.Cloud.beforeSave("ResourceUseRequest", function (request, response) {
-	return response.error("invalid user");
+	var ResourceQueue = Parse.Object.extend("ResourceQueue");
+	var query = new Parse.Query(ResourceQueue);
+	query.first({
+		success: function (resourceQueue) {
+			request.object.set("resourceQueue", resourceQueue);
+			response.success();
+		}
+	});
 });
