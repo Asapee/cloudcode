@@ -1,0 +1,14 @@
+{
+  "global": {
+    "parseVersion": "1.4.2"
+  },
+  "applications": {
+    "_default": {
+      "link": "asapee"
+    },
+    "asapee": {
+      "applicationId": "VQDNCu0LM845b16zaU32cmxvSSBjthbWZntMamEA",
+      "masterKey": "0lUteJfCFTCl89RDExcGvCu9rMUn3BtFYMBnSOZr"
+    }
+  }
+}
