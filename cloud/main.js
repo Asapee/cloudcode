@@ -15,3 +15,8 @@ Parse.Cloud.define("unlock", function (request, response) {
 		response.error("invalid code");
 	}
 });
+
+
+Parse.Cloud.beforeSave("ResourceUseRequest", function (request, response) {
+	return response.error("invalid user");
+});
