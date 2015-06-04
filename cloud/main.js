@@ -1,21 +1,15 @@
 // Use Parse.Cloud.define to define as many cloud functions as you want.
 // For example:
 
+var Resource = Parse.Object.extend("Resource");
 var ResourceQueue = Parse.Object.extend("ResourceQueue");
 var ResourceGroup = Parse.Object.extend("ResourceGroup");
 var ResourceUseRequest = Parse.Object.extend("ResourceUseRequest");
+var ResourceUsageVoucher = Parse.Object.extend("ResourceUsageVoucher");
 
 function isCodeValid (code) {
 	return code === "1234";
 }
-
-Parse.Cloud.define("unlock", function (request, response) {
-	if (isCodeValid(request.params.keyCode)) {
-		response.success();
-	} else {
-		response.error("invalid code");
-	}
-});
 
 Parse.Cloud.afterSave("ResourceUseRequest", function (request) {
 	var query = new Parse.Query(ResourceQueue);
@@ -27,6 +21,43 @@ Parse.Cloud.afterSave("ResourceUseRequest", function (request) {
 	});
 });
 
+Parse.Cloud.define("unlockDoor", function (request, response) {
+	var query = new Parse.Query(ResourceUsageVoucher);
+	var resourceUseVoucherId = request.params.resourceUseVoucherId;
+	var resourceUseRequestId = request.params.resourceUseRequestId;
+	query.equalTo("objectId", resourceUseVoucherId);
+	query.first({
+		success: function (resourceUseVoucher) {
+			var query = new Parse.Query(ResourceQueue);
+			query.first().then(function (resourceQueue) {
+				resourceQueue.remove("resourceUseRequests", resourceUseRequestId);
+				resourceQueue.save();
+				resourceUseVoucher.destroy();
+				var query = new Parse.Query(Resource);
+				query.first({
+					success: function (resource) {
+						resource.set("isAvailable", true);
+						resource.save().then(function () {
+							response.success();
+						});
+					}
+				})
+			});
+		},
+		error: function (e) {
+			response.error("something else");
+		}
+	});
+});
+
+Parse.Cloud.define("isDoorOpen", function (request, response) {
+	var query = new Parse.Query(Resource);
+	query.first({
+		success: function (resource) {
+			response.success(resource.get("isAvailable"));
+		}
+	})
+});
 
 Parse.Cloud.define("getPositionInQueue", getPositionInQueue);
 Parse.Cloud.define("getWaitTime", function (request, response) {
